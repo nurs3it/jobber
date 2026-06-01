@@ -21,7 +21,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
 
       - name: Install dependencies
         run: |
@@ -32,5 +31,9 @@ jobs:
         run: ruff check .
 
       - name: Run tests
-        run: pytest -q
-        # tesseract в CI не ставим — OCR-тест корректно скипается (см. tests/test_cv_import.py)
+        # PYTHONPATH=корень репо + `python -m pytest` (добавляет cwd) гарантируют импорт
+        # top-level модулей (storage/registry/pipeline) независимо от editable-установки.
+        # tesseract в CI не ставим — OCR-тест корректно скипается (см. tests/test_cv_import.py).
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest -q
