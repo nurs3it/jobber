@@ -4,7 +4,10 @@
 *.session-journal
 *.session.bak
 sessions/
-storage/
+# Рантайм-данные storage (НЕ сам пакет storage/*.py — он должен коммититься!)
+storage/*.db
+storage/*.sqlite
+storage/*.sqlite3
 
 # --- Личные данные пользователя ---
 profile/cv.md

@@ -11,7 +11,9 @@ venv/
 *.session
 *.session-journal
 .env
-storage/
+storage/*.db
+storage/*.sqlite
+storage/*.sqlite3
 logs/
 vault/
 profile/cv.md
