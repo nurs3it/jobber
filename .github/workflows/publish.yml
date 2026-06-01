@@ -11,6 +11,8 @@ jobs:
   publish:
     name: npm publish
     runs-on: ubuntu-latest
+    # Секрет NPM_TOKEN хранится в Environment "release" (репо → Settings → Environments).
+    environment: release
     steps:
       - uses: actions/checkout@v4
 
