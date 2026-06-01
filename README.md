@@ -1,5 +1,7 @@
 # Jobber
 
+[![CI](https://github.com/nurs3it/jobber/actions/workflows/ci.yml/badge.svg)](https://github.com/nurs3it/jobber/actions/workflows/ci.yml)
+
 Локальный персональный ассистент поиска работы по **Telegram**. Отдаёшь резюме и Telegram-ключи —
 получаешь свежие подходящие вакансии из своих чатов, групп, сообществ и каналов (**включая архив**),
 каждую с готовым черновиком сопроводительного письма и скором релевантности 0–100.
