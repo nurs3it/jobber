@@ -1,0 +1,36 @@
+# --- Секреты и сессии (НИКОГДА не коммитить) ---
+.env
+*.session
+*.session-journal
+*.session.bak
+sessions/
+storage/
+
+# --- Личные данные пользователя ---
+profile/cv.md
+profile/uploads/
+vault/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.uv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# --- Логи ---
+logs/
+*.log
+
+# --- ОС / редакторы ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
