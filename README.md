@@ -18,10 +18,10 @@ Jobber ставится как глобальный CLI. Данные и Python-
 
 ```bash
 # из npm registry:
-npm  i -g @nurs3it/jobber              #  или: yarn global add @nurs3it/jobber
-npm  i -g @nurs3it/jobber@1.0.0        #  конкретная версия
+npm  i -g @nurseiit_sharip/jobber          #  или: yarn global add @nurseiit_sharip/jobber
+npm  i -g @nurseiit_sharip/jobber@1.0.0    #  конкретная версия
 # из GitHub (по git-тегам, без npm):
-npm  i -g github:nurs3it/jobber        #  или: ...#v1.0.0
+npm  i -g github:nurs3it/jobber            #  или: ...#v1.0.0
 
 jobber setup                           # venv, зависимости, регистрация в Claude Code
 ```

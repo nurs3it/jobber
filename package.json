@@ -1,5 +1,5 @@
 {
-  "name": "@nurs3it/jobber",
+  "name": "@nurseiit_sharip/jobber",
   "version": "1.0.0",
   "description": "Локальный персональный ассистент поиска работы по Telegram (provider-agnostic). CLI управления установкой, версиями и расписанием; интеллект — в Claude Code через MCP.",
   "bin": {
