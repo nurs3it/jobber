@@ -24,7 +24,22 @@ jobs:
       - name: Sanity check CLI
         run: node --check bin/jobber.js
 
+      - name: Check if version already published
+        id: check
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VER="$(node -p "require('./package.json').version")"
+          echo "Пакет: $NAME@$VER"
+          PUBLISHED="$(npm view "$NAME@$VER" version 2>/dev/null || true)"
+          if [ -n "$PUBLISHED" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$NAME@$VER уже опубликован в npm — публикация пропущена."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish (public scoped)
+        if: steps.check.outputs.exists == 'false'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
