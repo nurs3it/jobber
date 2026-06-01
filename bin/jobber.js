@@ -490,6 +490,89 @@ function readScheduleTime() {
 }
 function pad(n) { return String(n).padStart(2, '0'); }
 
+// --- Релиз: bump версии + git-тег + push (+ опц. публикация в npm) ---
+
+function bumpSemver(current, kind) {
+  if (/^v?\d+\.\d+\.\d+$/.test(kind)) return kind.replace(/^v/, ''); // явная версия
+  const [a, b, d] = current.replace(/^v/, '').split('.').map(Number);
+  if (kind === 'major') return `${a + 1}.0.0`;
+  if (kind === 'minor') return `${a}.${b + 1}.0`;
+  return `${a}.${b}.${d + 1}`; // patch (по умолчанию)
+}
+
+function syncPyprojectVersion(version) {
+  const p = path.join(PKG_ROOT, 'pyproject.toml');
+  if (!fs.existsSync(p)) return;
+  const t = fs.readFileSync(p, 'utf8').replace(/^version = ".*"$/m, `version = "${version}"`);
+  fs.writeFileSync(p, t);
+}
+
+function publishNpm(token) {
+  const opts = { cwd: PKG_ROOT };
+  const npmrc = path.join(PKG_ROOT, '.npmrc');
+  let created = false;
+  try {
+    if (token) {
+      fs.writeFileSync(npmrc, `//registry.npmjs.org/:_authToken=${token}\n`);
+      created = true;
+    }
+    const okPub = run('npm', ['publish', '--access', 'public'], opts);
+    if (okPub) ok('Опубликовано в npm.');
+    else fail('npm publish не удался (нужен NPM_TOKEN с bypass-2FA или --otp).');
+    return okPub;
+  } finally {
+    if (created) { try { fs.rmSync(npmrc); } catch (_) {} }
+  }
+}
+
+async function cmdRelease(bump, flags) {
+  const opts = { cwd: PKG_ROOT };
+  // Релиз — только из исходного git-клона (в глобальной установке PKG_ROOT не git-репозиторий).
+  if (!fs.existsSync(path.join(PKG_ROOT, '.git'))) {
+    fail('`jobber release` запускается из исходного git-клона проекта (не из глобальной установки).');
+    process.exit(1);
+  }
+  if (capture('git', ['status', '--porcelain'], opts)) {
+    fail('Рабочее дерево не чистое — закоммитьте или уберите изменения перед релизом.');
+    process.exit(1);
+  }
+
+  const pkgPath = path.join(PKG_ROOT, 'package.json');
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const next = bumpSemver(pkg.version, bump || 'patch');
+  info(`Релиз: ${pkg.version} → ${paint(c.bold, next)}`);
+
+  // 1. Обновить версии (package.json + pyproject для синхронизации).
+  pkg.version = next;
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+  syncPyprojectVersion(next);
+
+  // 2. git commit + tag + push.
+  run('git', ['add', 'package.json', 'pyproject.toml'], opts);
+  if (!run('git', ['commit', '-m', `release: v${next}`], opts)) {
+    fail('git commit не удался (проверьте git user.name/email).');
+    process.exit(1);
+  }
+  run('git', ['tag', '-a', `v${next}`, '-m', `Jobber ${next}`], opts);
+  if (!run('git', ['push', 'origin', 'HEAD'], opts)) { fail('git push не удался'); process.exit(1); }
+  run('git', ['push', 'origin', `v${next}`], opts);
+  ok(`Закоммичено и тег v${next} запушен.`);
+
+  // 3. Публикация в npm.
+  const token = process.env.NPM_TOKEN;
+  if (flags.publish || token) {
+    if (!token) warn('NPM_TOKEN не задан — публикую интерактивно (npm может запросить OTP).');
+    publishNpm(token);
+    if (token) {
+      log(paint(c.dim, 'Подсказка: если в GitHub задан секрет NPM_TOKEN, workflow тоже попытается'));
+      log(paint(c.dim, 'опубликовать эту версию по тегу и упадёт на дубликате — это ожидаемо.'));
+    }
+  } else {
+    info('Публикацию выполнит GitHub Actions по тегу (если задан секрет NPM_TOKEN).');
+    log(paint(c.dim, 'Локально опубликовать: NPM_TOKEN=<токен> jobber release ... (или --publish).'));
+  }
+}
+
 function cmdHelp() {
   log(`${paint(c.bold, 'jobber')} — ассистент поиска работы по Telegram (CLI управления)
 
@@ -500,6 +583,8 @@ ${paint(c.bold, 'Установка/версии:')}
   jobber downdate               Откатить на предыдущую версию
   jobber install-version <v>    Установить конкретную версию (алиас: use)
   jobber versions               Показать доступные версии
+  jobber release [patch|minor|major|<x.y.z>]
+                                Bump версии + git-тег + push (+ публикация в npm, если есть NPM_TOKEN)
   jobber remove [--purge]       Удалить (с --purge — вместе с данными ~/.jobber)
 
 ${paint(c.bold, 'Работа:')}
@@ -526,6 +611,7 @@ function parseFlags(args) {
     else if (a === '--ocr') flags.ocr = true;
     else if (a === '--npm') flags.npm = true;
     else if (a === '--github') flags.github = true;
+    else if (a === '--publish') flags.publish = true;
     else rest.push(a);
   }
   return { flags, rest };
@@ -564,6 +650,8 @@ async function main() {
       return cmdUse(rest[0]);
     case 'versions':
       return cmdVersions();
+    case 'release':
+      return cmdRelease(rest[0], flags);
     case 'remove':
     case 'uninstall':
       return cmdRemove(flags);
