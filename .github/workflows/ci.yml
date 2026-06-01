@@ -6,6 +6,17 @@ on:
   pull_request:
 
 jobs:
+  cli:
+    name: node --check (CLI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Syntax-check CLI
+        run: node --check bin/jobber.js
+
   test:
     name: pytest (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
