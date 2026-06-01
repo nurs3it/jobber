@@ -36,6 +36,9 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# Гарантируем импорт top-level модулей (storage/registry/pipeline) независимо от способа
+# запуска (console-script `pytest` не добавляет cwd в sys.path, в отличие от `python -m pytest`).
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100

@@ -249,6 +249,8 @@ function installMcp() {
     '#!/usr/bin/env bash',
     'set -euo pipefail',
     `export JOBBER_HOME="${HOME}"`,
+    // Гарантируем импорт кода пакета (в т.ч. top-level registry/pipeline) независимо от editable.
+    `export PYTHONPATH="${PKG_ROOT}\${PYTHONPATH:+:$PYTHONPATH}"`,
     `exec "${VENV_PY}" -m mcp_server`,
     '',
   ].join('\n');
@@ -407,7 +409,8 @@ function requireVenv() {
   }
 }
 function venvEnv() {
-  return Object.assign({}, process.env, { JOBBER_HOME: HOME });
+  const pp = process.env.PYTHONPATH ? PKG_ROOT + path.delimiter + process.env.PYTHONPATH : PKG_ROOT;
+  return Object.assign({}, process.env, { JOBBER_HOME: HOME, PYTHONPATH: pp });
 }
 
 function cmdLogin() {
