@@ -1,12 +1,17 @@
 {
-  "name": "jobber",
+  "name": "@nurs3it/jobber",
   "version": "1.0.0",
   "description": "Локальный персональный ассистент поиска работы по Telegram (provider-agnostic). CLI управления установкой, версиями и расписанием; интеллект — в Claude Code через MCP.",
   "bin": {
     "jobber": "bin/jobber.js"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "prepack": "find . -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null || true",
+    "prepublishOnly": "node --check bin/jobber.js",
     "postinstall": "node bin/jobber.js _postinstall || true"
   },
   "files": [

@@ -17,12 +17,11 @@
 Jobber ставится как глобальный CLI. Данные и Python-движок живут в `~/.jobber` (отдельно от кода).
 
 ```bash
-# из GitHub (рекомендуется):
-npm  i -g github:nurs3it/jobber        #  или: yarn global add github:nurs3it/jobber
-# конкретная версия (git-тег):
-npm  i -g github:nurs3it/jobber#v1.0.0
-# если опубликовано в npm registry:
-npm  i -g jobber                       #  или: jobber@1.0.0
+# из npm registry:
+npm  i -g @nurs3it/jobber              #  или: yarn global add @nurs3it/jobber
+npm  i -g @nurs3it/jobber@1.0.0        #  конкретная версия
+# из GitHub (по git-тегам, без npm):
+npm  i -g github:nurs3it/jobber        #  или: ...#v1.0.0
 
 jobber setup                           # venv, зависимости, регистрация в Claude Code
 ```

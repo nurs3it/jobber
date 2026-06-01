@@ -5,7 +5,7 @@
 ## 1. Установка (npm / yarn)
 
 ```bash
-npm i -g github:nurs3it/jobber     # или: yarn global add github:nurs3it/jobber
+npm i -g @nurs3it/jobber           # или из GitHub: npm i -g github:nurs3it/jobber
 jobber setup                       # venv, зависимости, регистрация в Claude Code
 ```
 
