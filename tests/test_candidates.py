@@ -24,16 +24,19 @@ class FakeSource:
                 continue
             yield d
 
-    async def iter_new_messages(self, dialog, cursor):
+    async def iter_new_messages(self, dialog, cursor, since=None):
+        self.last_since = since
         for m in self._messages.get(dialog.id, []):
             if cursor is not None and int(m.message_id) <= int(cursor):
                 continue
+            if since is not None and m.date < since:
+                break   # новые→старые: первое старое обрывает перебор
             yield m
 
 
-def _msg(did, mid, text):
+def _msg(did, mid, text, date=None):
     return RawMessage(source="telegram", dialog_id=did, message_id=str(mid),
-                      date=datetime(2026, 5, 1, tzinfo=timezone.utc), text=text)
+                      date=date or datetime(2026, 5, 1, tzinfo=timezone.utc), text=text)
 
 
 CONFIG = {"prefilter": {"enabled": True, "keywords_ru": ["вакансия", "ищем"], "keywords_en": [],
@@ -60,3 +63,21 @@ async def test_collect_candidates_prefilters_and_advances_cursor(tmp_path):
     # повторный сбор ничего не вернёт (seen + cursor)
     cands2 = await collect_candidates(CONFIG, FakeSource([dialog], messages), store)
     assert cands2 == []
+
+
+@pytest.mark.asyncio
+async def test_collect_candidates_since_excludes_old_messages(tmp_path):
+    """`since` прокидывается в источник и обрывает старые сообщения (фикс B на уровне pipeline)."""
+    dialog = Dialog(source="telegram", id="-100777", title="Jobs", kind=DialogKind.channel,
+                    username="jobs")
+    cutoff = datetime(2026, 5, 5, tzinfo=timezone.utc)
+    messages = {"-100777": [                                   # новые→старые
+        _msg("-100777", 12, "Ищем Frontend", date=datetime(2026, 5, 10, tzinfo=timezone.utc)),
+        _msg("-100777", 11, "Ищем разработчика", date=datetime(2026, 5, 2, tzinfo=timezone.utc)),
+    ]}
+    store = Store(tmp_path / "db.sqlite")
+    src = FakeSource([dialog], messages)
+    cands = await collect_candidates(CONFIG, src, store, since=cutoff)
+
+    assert [c.message_id for c in cands] == ["12"]   # старое (id 11, 2 мая) обрезано по cutoff
+    assert src.last_since == cutoff                  # cutoff действительно дошёл до источника

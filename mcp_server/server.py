@@ -90,17 +90,22 @@ async def scan_candidates(
     if source is None:
         return {"error": "Источник telegram выключен в config.yaml (sources.telegram.enabled)."}
 
+    # cutoff из depth_days прокидывается ВНИЗ в источник, чтобы перебор обрывался по дате
+    # на стороне сбора (а не пост-фильтровал уже скачанную историю каждого диалога).
+    cutoff = (
+        datetime.now(timezone.utc) - timedelta(days=depth_days) if depth_days is not None else None
+    )
+
     store = Store()
     await source.connect()
     try:
         candidates = await collect_candidates(
-            config, source, store, include_archived=include_archived
+            config, source, store, include_archived=include_archived, since=cutoff
         )
     finally:
         await source.close()
 
-    if depth_days is not None:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=depth_days)
+    if cutoff is not None:  # defense-in-depth: финальная отсечка по дате
         candidates = [c for c in candidates if c.date >= cutoff]
 
     return {

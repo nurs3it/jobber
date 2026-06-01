@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable
+from datetime import datetime
 from typing import Any, Protocol
 
 from core.interfaces import Capabilities
@@ -56,6 +57,13 @@ class TelegramSource:
             self._config.get("sources", {}).get("telegram", {}).get("delay_between_requests", 0.5)
         )
 
+    @property
+    def _page_size(self) -> int:
+        """Размер «страницы» запроса: пауза анти-flood ставится раз в страницу, не на сообщение."""
+        return int(
+            self._config.get("sources", {}).get("telegram", {}).get("request_page_size", 100)
+        )
+
     async def _sleep(self, seconds: float) -> None:
         result = self._sleeper(seconds)
         if asyncio.iscoroutine(result):
@@ -76,13 +84,28 @@ class TelegramSource:
             yield mapping.map_dialog(raw)
 
     async def iter_new_messages(
-        self, dialog: Dialog, cursor: str | None
+        self, dialog: Dialog, cursor: str | None, *, since: datetime | None = None
     ) -> AsyncIterator[RawMessage]:
-        """Новые сообщения с cursor (min_id). None = глубина первого прохода (по дате на стороне backend)."""
+        """Новые сообщения с cursor (min_id).
+
+        - ``since`` — нижняя граница по дате: Telethon отдаёт сообщения от новых к старым,
+          поэтому на первом сообщении старше ``since`` перебор обрывается (``break``). Это
+          останавливает и backend-генератор (новые страницы не запрашиваются), благодаря чему
+          узкий ``depth_days`` реально дешёвый, а не пост-фильтр уже скачанного.
+        - Пауза анти-flood (``delay_between_requests``) ставится раз в страницу
+          (``request_page_size``), а НЕ на каждое сообщение — иначе sleep умножается на сотни.
+        """
         min_id = int(cursor) if cursor is not None else None
+        page_size = max(1, self._page_size)
+        i = 0
         async for raw in self._backend.iter_messages(int(dialog.id), min_id):
-            await self._sleep(self._delay)
-            yield mapping.map_message(raw, dialog)
+            msg = mapping.map_message(raw, dialog)
+            if since is not None and msg.date < since:
+                break
+            if i % page_size == 0:
+                await self._sleep(self._delay)
+            i += 1
+            yield msg
 
     async def search(self, query: str) -> AsyncIterator[RawMessage]:  # pragma: no cover
         raise NotImplementedError("Поиск по Telegram — опционально, не требуется для дайджеста")

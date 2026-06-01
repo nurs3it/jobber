@@ -1,6 +1,6 @@
 {
   "name": "@nurseiit_sharip/jobber",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Локальный персональный ассистент поиска работы по Telegram (provider-agnostic). CLI управления установкой, версиями и расписанием; интеллект — в Claude Code через MCP.",
   "bin": {
     "jobber": "bin/jobber.js"

@@ -38,8 +38,12 @@ async def run_scan(
     *,
     include_archived: bool = True,
     generate_covers: bool = False,
+    since: datetime | None = None,
 ) -> ScanOutcome:
-    """Пройти по диалогам источника, найти и оценить вакансии. Обновляет курсоры/seen."""
+    """Пройти по диалогам источника, найти и оценить вакансии. Обновляет курсоры/seen.
+
+    ``since`` — нижняя граница по дате (из depth_days), как в ``collect_candidates``.
+    """
     min_score = int(config.get("scoring", {}).get("min_score", 55))
     cover_threshold = int(config.get("scoring", {}).get("cover_letter_threshold", 60))
     exclude = set(config.get("sources", {}).get(source.name, {}).get("exclude_dialogs", []))
@@ -53,7 +57,7 @@ async def run_scan(
         cursor = store.get_cursor(source.name, dialog.id)
         max_id = _to_int(cursor)
 
-        async for msg in source.iter_new_messages(dialog, cursor):
+        async for msg in source.iter_new_messages(dialog, cursor, since=since):
             if store.is_seen(source.name, dialog.id, msg.message_id):
                 continue
             store.mark_seen(source.name, dialog.id, msg.message_id)
@@ -92,9 +96,13 @@ async def collect_candidates(
     store: Store,
     *,
     include_archived: bool = True,
+    since: datetime | None = None,
 ) -> list[RawMessage]:
     """Собрать сообщения-кандидаты (после предфильтра, БЕЗ LLM). Главный сценарий: дальше
     классификацию/скоринг/письма делает сам Claude Code (через MCP). Обновляет seen/курсоры.
+
+    ``since`` — нижняя граница по дате (из depth_days): источник обрывает перебор на первом
+    сообщении старше cutoff, поэтому узкий проход не тянет всю историю диалога.
     """
     exclude = set(config.get("sources", {}).get(source.name, {}).get("exclude_dialogs", []))
     candidates: list[RawMessage] = []
@@ -106,7 +114,7 @@ async def collect_candidates(
         cursor = store.get_cursor(source.name, dialog.id)
         max_id = _to_int(cursor)
 
-        async for msg in source.iter_new_messages(dialog, cursor):
+        async for msg in source.iter_new_messages(dialog, cursor, since=since):
             if store.is_seen(source.name, dialog.id, msg.message_id):
                 continue
             store.mark_seen(source.name, dialog.id, msg.message_id)

@@ -35,11 +35,13 @@ class FakeSource:
                 continue
             yield d
 
-    async def iter_new_messages(self, dialog, cursor):
+    async def iter_new_messages(self, dialog, cursor, since=None):
         self.cursors_seen.append((dialog.id, cursor))
         for m in self._messages.get(dialog.id, []):
             if cursor is not None and int(m.message_id) <= int(cursor):
                 continue
+            if since is not None and m.date < since:
+                break
             yield m
 
 
