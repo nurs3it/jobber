@@ -40,12 +40,21 @@ storage/           Курсоры (per-dialog), seen-store, кэш (SQLite/JSON,
 profile/           cv.md (резюме пользователя, gitignored).
 mcp_server/        MCP-сервер (stdio). Объявляет инструменты, роутит через ядро. Подключаем к Claude Code.
 .claude/           Slash-команды, агенты, документация (docs/).
-scripts/           install.sh, install-schedule.sh, uninstall-schedule.sh.
+bin/jobber.js      Node-CLI пакета: install/update/downdate/remove/version/login/schedule.
+package.json       npm-пакет (bin: jobber). Ставится через npm/yarn (GitHub-теги или npm registry).
+scripts/           install.sh, install-schedule.sh, uninstall-schedule.sh (legacy/локальный путь).
 tests/             pytest + моки.
-config.yaml        Единый источник правды конфигурации (не секреты).
-.env               Секреты: TG_API_ID/HASH/PHONE. Gitignored.
-vault/             Obsidian vault по умолчанию (gitignored).
+config.yaml        Дефолтный конфиг (копируется в ~/.jobber/config.yaml при setup).
+vault/             Obsidian vault для dev (в проде — ~/.jobber/vault).
 ```
+
+**Распространение и пути.** Jobber ставится как глобальный CLI (`npm i -g github:nurs3it/jobber`).
+Код пакета и данные пользователя разделены через `core/paths.py`:
+- `PACKAGE_ROOT` — код (репозиторий / каталог npm-пакета).
+- `JOBBER_HOME` (по умолчанию `~/.jobber`, env-переопределяемо) — `config.yaml`, `.env`, `*.session`,
+  `vault/`, `storage/`, `profile/cv.md`, `venv/`.
+`jobber setup` создаёт venv, ставит Python-пакет (editable), копирует config/.env, ставит slash-команды
+в `~/.claude/commands` и регистрирует MCP-сервер (`claude mcp add jobber -s user`).
 
 Поток данных: `источник → предфильтр → LLM-классификация/скоринг → дедуп → сопроводительное → дайджест`.
 

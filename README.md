@@ -10,14 +10,52 @@
 
 > Почему не HeadHunter: соискательский API закрыт с 15.12.2025. Источник — Telegram (user-session, MTProto).
 
-## Быстрый старт
+## Установка (npm / yarn)
+
+Jobber ставится как глобальный CLI. Данные и Python-движок живут в `~/.jobber` (отдельно от кода).
 
 ```bash
-bash scripts/install.sh      # зависимости, .env из шаблона, структура
-# в Claude Code:
-/onboard                     # резюме (pdf/docx/img) + Telegram-ключи + первый логин
-/scan                        # разовый проход по диалогам и архиву
-/digest                      # дайджест в Obsidian + отчёт в чат
+# из GitHub (рекомендуется):
+npm  i -g github:nurs3it/jobber        #  или: yarn global add github:nurs3it/jobber
+# конкретная версия (git-тег):
+npm  i -g github:nurs3it/jobber#v1.0.0
+# если опубликовано в npm registry:
+npm  i -g jobber                       #  или: jobber@1.0.0
+
+jobber setup                           # venv, зависимости, регистрация в Claude Code
+```
+
+Затем в **Claude Code**:
+
+```
+/onboard      # резюме (pdf/docx/img) + Telegram-ключи + первый логин
+/scan         # разовый проход по диалогам и архиву
+/digest       # дайджест в Obsidian + отчёт в чат
+```
+
+## Команды CLI
+
+| Команда | Назначение |
+|---|---|
+| `jobber install [версия]` | Установить/настроить (опц. конкретную версию). |
+| `jobber update` | Обновить до последней версии. |
+| `jobber downdate` | Откатить на предыдущую версию. |
+| `jobber install-version <v>` · `use <v>` | Поставить конкретную версию. |
+| `jobber versions` | Список доступных версий (git-теги / npm). |
+| `jobber remove [--purge]` | Удалить (с `--purge` — вместе с данными `~/.jobber`). |
+| `jobber login` | Вход в Telegram (код + 2FA). |
+| `jobber extract <файл>` | Извлечь текст из резюме. |
+| `jobber schedule on\|off` | Ежедневный дайджест по расписанию. |
+| `jobber status` · `version` | Диагностика и версия. |
+
+> Канал версий определяется при установке (GitHub-теги или npm). Переопределить: `--github` / `--npm`.
+
+### Установка из исходников (dev)
+
+```bash
+git clone https://github.com/nurs3it/jobber && cd jobber
+npm link        # делает доступным CLI `jobber` из репозитория
+jobber setup
 ```
 
 ## Документация

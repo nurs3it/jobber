@@ -11,13 +11,12 @@ description: Онбординг — импорт резюме (pdf/docx/img) в 
 
 1. Попроси пользователя приложить резюме файлом: **pdf, docx или изображение** (png/jpg).
 2. Извлеки текст:
-   - **PDF / DOCX / TXT** → запусти CLI: `python -m ingest extract <путь>` (внутри `.venv`).
-     Команда печатает извлечённый текст в stdout (pdf→pypdf+fallback pdfplumber; docx→параграфы+таблицы).
+   - **PDF / DOCX / TXT** → запусти CLI: `jobber extract <путь>`. Команда печатает извлечённый текст
+     в stdout (pdf→pypdf+fallback pdfplumber; docx→параграфы+таблицы).
    - **Изображение** → прочитай его напрямую **зрением Claude** (лучший путь). Программный
-     fallback — `python -m ingest extract image.png` (OCR pytesseract, нужен системный tesseract).
-3. **Структурируй в `profile/cv.md` по шаблону `profile/cv.md.template`.**
-   Запиши результат: либо `python -c "from ingest.cv_import import write_cv_markdown; ..."`
-   (даёт атомарную запись + бэкап `cv.md.bak`), либо через Write tool. Покажи итог пользователю.
+     fallback — `jobber extract image.png` (OCR pytesseract, нужен системный tesseract).
+3. **Структурируй в `cv.md` по шаблону `profile/cv.md.template`** и запиши в `~/.jobber/profile/cv.md`
+   (Write tool). Это источник истины для скоринга. Покажи итог пользователю.
 
 ### ⚠️ ГЛАВНОЕ ПРАВИЛО АНАЛИЗА РЕЗЮМЕ — НИЧЕГО НЕ УПУСКАТЬ
 
@@ -51,12 +50,11 @@ relocation_ok, salary_min/currency, stop_factors), подтвердив знач
 
 ## Шаг 2. Telegram-ключи → .env
 
-1. Если `.env` нет — создай из `.env.example`.
+1. Файл `~/.jobber/.env` создаётся при `jobber setup`. Если его нет — попроси выполнить `jobber setup`.
 2. Объясни, где взять `api_id`/`api_hash`: https://my.telegram.org → API development tools.
    Если ключей ещё нет — помоги получить.
-3. Запиши `TG_API_ID`, `TG_API_HASH`, `TG_PHONE` в `.env` (через Edit tool по строкам, чтобы
-   не светить секреты в argv/логах; программно для MCP/автономного пути — `core.config.update_env`,
-   который сохраняет остальные строки). **Никогда не повторяй секреты в чат и не логируй их.**
+3. Запиши `TG_API_ID`, `TG_API_HASH`, `TG_PHONE` в `~/.jobber/.env` (через Edit tool по строкам, чтобы
+   не светить секреты в argv/логах). **Никогда не повторяй секреты в чат и не логируй их.**
 
 ## Шаг 3. Глубина первого прохода
 
@@ -65,8 +63,7 @@ relocation_ok, salary_min/currency, stop_factors), подтвердив знач
 
 ## Шаг 4. Первый логин в Telegram
 
-1. Запусти интерактивный логин: `python -m sources.telegram login` (внутри `.venv`).
-   Telethon (user session) запросит код и пароль 2FA.
+1. Запусти интерактивный логин: `jobber login`. Telethon (user session) запросит код и пароль 2FA.
 2. Пользователь вводит код из Telegram; при включённой 2FA — пароль. Интерактивно в терминале.
 3. Создастся файл сессии `<TG_SESSION_NAME>.session`. 🔒 Напомни: это полный доступ к аккаунту,
    он локальный и в .gitignore. Никогда не коммитить и не пересылать.

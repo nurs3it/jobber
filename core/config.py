@@ -15,20 +15,23 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
-CONFIG_PATH = ROOT / "config.yaml"
+from core.paths import PACKAGE_ROOT, config_path, env_path, jobber_home
+
+# Обратная совместимость: ROOT раньше указывал на корень кода.
+ROOT = PACKAGE_ROOT
+CONFIG_PATH = config_path()
 
 
 def load_config(path: Path | None = None) -> dict[str, Any]:
-    """Прочитать config.yaml в dict."""
-    path = path or CONFIG_PATH
+    """Прочитать config.yaml в dict (из JOBBER_HOME, иначе упакованный дефолт)."""
+    path = path or config_path()
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
 def load_secrets() -> dict[str, str | None]:
     """Прочитать секреты из .env. НЕ логировать возвращаемое значение."""
-    load_dotenv(ROOT / ".env")
+    load_dotenv(env_path())
     return {
         "api_id": os.getenv("TG_API_ID"),
         "api_hash": os.getenv("TG_API_HASH"),
@@ -46,7 +49,8 @@ def update_env(updates: dict[str, str], path: Path | None = None) -> Path:
 
     ⚠️ Значения — секреты. Не логировать содержимое и не печатать в чат.
     """
-    path = Path(path) if path is not None else ROOT / ".env"
+    path = Path(path) if path is not None else jobber_home() / ".env"
+    path.parent.mkdir(parents=True, exist_ok=True)
     remaining = dict(updates)
 
     lines: list[str] = []
@@ -71,9 +75,12 @@ def update_env(updates: dict[str, str], path: Path | None = None) -> Path:
 
 
 def vault_dir(config: dict[str, Any]) -> Path:
-    """Абсолютный путь к подпапке дайджеста внутри Obsidian vault."""
+    """Абсолютный путь к подпапке дайджеста внутри Obsidian vault.
+
+    Относительный vault_path резолвится относительно JOBBER_HOME (пользовательские данные).
+    """
     digest = config.get("digest", {})
     base = Path(digest.get("vault_path", "./vault"))
     if not base.is_absolute():
-        base = ROOT / base
+        base = jobber_home() / base
     return base / digest.get("subfolder", "Jobber")

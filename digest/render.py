@@ -16,8 +16,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from core.config import ROOT
 from core.models import Contact, ScoredVacancy
+from core.paths import jobber_home
 
 
 def _contact_line(contact: Contact) -> str:
@@ -101,7 +101,7 @@ def write_digest(markdown: str, config: dict[str, Any], when: datetime) -> Path:
     digest = config.get("digest", {})
     base = Path(digest.get("vault_path", "./vault"))
     if not base.is_absolute():
-        base = ROOT / base
+        base = jobber_home() / base
     folder = base / digest.get("subfolder", "Jobber")
     folder.mkdir(parents=True, exist_ok=True)
 

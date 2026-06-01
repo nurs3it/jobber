@@ -1,0 +1,21 @@
+# Исключения для npm-пакета (дополняют whitelist `files` в package.json).
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+tests/
+.venv/
+venv/
+*.session
+*.session-journal
+.env
+storage/
+logs/
+vault/
+profile/cv.md
+profile/uploads/
+.jobber/
+*.log
+.DS_Store

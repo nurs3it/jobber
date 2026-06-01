@@ -2,13 +2,21 @@
 
 Пошаговая первичная настройка Jobber.
 
-## 1. Установка
+## 1. Установка (npm / yarn)
 
 ```bash
-bash scripts/install.sh
+npm i -g github:nurs3it/jobber     # или: yarn global add github:nurs3it/jobber
+jobber setup                       # venv, зависимости, регистрация в Claude Code
 ```
 
-Скрипт ставит зависимости (uv или venv), создаёт `.env` из шаблона и рабочие папки.
+`jobber setup` создаёт `~/.jobber` (venv, `config.yaml`, `.env`, vault, storage), ставит slash-команды
+в `~/.claude/commands` и регистрирует MCP-сервер `jobber` в Claude Code (user scope).
+
+> Альтернатива (dev из исходников): `git clone … && npm link && jobber setup`.
+> Старый локальный путь без npm: `bash scripts/install.sh` (ставит в папку проекта).
+
+Управление версиями: `jobber update` / `jobber downdate` / `jobber install-version <v>` / `jobber versions`.
+Диагностика: `jobber status`. Удаление: `jobber remove [--purge]`.
 
 ## 2. Получение api_id / api_hash
 

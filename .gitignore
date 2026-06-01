@@ -25,6 +25,13 @@ venv/
 build/
 dist/
 
+# --- Node / npm ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+*.tgz
+.jobber/
+
 # --- Логи ---
 logs/
 *.log

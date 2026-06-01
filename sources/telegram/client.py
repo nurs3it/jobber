@@ -13,10 +13,9 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[2]
+from core.paths import jobber_home
 
 
 class TelethonBackend:
@@ -45,7 +44,9 @@ class TelethonBackend:
                 "Нет TG_API_ID/TG_API_HASH в .env. Заполните их (см. /onboard, my.telegram.org)."
             )
 
-        session_path = str(ROOT / session_name)
+        home = jobber_home()
+        home.mkdir(parents=True, exist_ok=True)
+        session_path = str(home / session_name)
         # flood_sleep_threshold: автоматически переждать небольшие FloodWait.
         self._client = TelegramClient(
             session_path, int(api_id), str(api_hash), flood_sleep_threshold=120

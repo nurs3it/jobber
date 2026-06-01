@@ -9,9 +9,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from core.models import Profile
+from core.paths import data_dir
 
-ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CV_PATH = ROOT / "profile" / "cv.md"
+DEFAULT_CV_PATH = data_dir("profile", "cv.md")
 
 
 def load_profile(path: Path | None = None) -> Profile:

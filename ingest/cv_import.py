@@ -15,8 +15,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CV_PATH = ROOT / "profile" / "cv.md"
+from core.paths import data_dir
+
+DEFAULT_CV_PATH = data_dir("profile", "cv.md")
 
 TEXT_SUFFIXES = {".txt", ".md", ".markdown", ".text"}
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".tiff", ".tif", ".bmp"}
