@@ -99,9 +99,8 @@ filters:
 
 # --- Сопроводительные письма ---
 cover_letter:
-  tone: friendly            # friendly | formal | youthful
-  youthful: true            # молодёжный, человечный тон
-  max_sentences: 6          # короткое письмо
+  tone: plain               # plain — короткий нейтральный текст без хайпа и воды
+  max_sentences: 4          # очень короткое письмо (см. шаблон в .claude/commands/cover.md)
   language: ru              # ru | en | auto (auto = язык вакансии)
   # Письмо — всегда ТОЛЬКО черновик под ревью. Ничего не отправляется автоматически.
 
